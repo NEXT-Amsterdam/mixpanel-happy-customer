@@ -14,9 +14,11 @@
     <div id="companyTable"></div>
     <script>
       /**
-       * Change the eventName var into your key activity:
+       * Change the eventName param into your key activity:
        */
-      var eventName = 'Add Study event';
+      var jqlParams = {
+        eventName: 'Add Study event'
+      }
       
       // No need to edit anything past this point.
       var eventGraph  = $('#graph').MPChart({chartType: 'line'});
@@ -25,21 +27,53 @@
         firstColHeader: 'Type'
       });
 
-          MP.api.jql(
-            "function main() { var monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']; function getMonth(tuple) { return (new Date(tuple.event.time)).toISOString().substring(0, 7); } return join( Events({ from_date: '2015-01-01', to_date: (new Date()).toISOString().substring(0, 10), event_selectors: [{event: '" + eventName + "'}] }), People() ).filter(function(tuple) { return tuple.user && tuple.event; }) .groupByUser([getMonth], function(count, events) { count = count || 0; var first_event = events[0]; for (var i = 1; i < events.length - 1; i++) { var check_event = events[i]; var time_difference = check_event.event.time - first_event.event.time; var one_week = 3*24*3600*1000; if (time_difference >= one_week) { count += 1; } } return count; }) .filter(function(user_count) { return user_count.value >= 2; }) .groupBy(['key.1'], mixpanel.reducer.count()); }"
-        ).done(function(results) {
-            
-            var data = {};
-            for(var i = 0, ln = results.length; i < ln; i++) {
-              data[ results[i].key[0] ] = results[i].value;
-            }
-            
-            var mpData = MP.Data.inst({'HC': data});
-            
-            eventGraph.MPChart('setData', mpData);
-            eventTable.MPTable('setData', mpData);
-        
-        });
+      // query here -- no need to modify
+      var jqlQuery = function main() {
+        var monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+        function getMonth(tuple) {
+          return (new Date(tuple.event.time)).toISOString().substring(0, 7);
+        }
+
+        return join(Events({
+          from_date: '2015-01-01',
+          to_date: (new Date()).toISOString().substring(0, 10),
+          event_selectors: [{
+              event: params.eventName
+          }]
+        }), People()).filter(function(tuple) {
+          return tuple.user && tuple.event;
+        }).groupByUser([getMonth], function(count, events) {
+          count = count || 0;
+          var first_event = events[0];
+          for (var i = 1; i < events.length - 1; i++) {
+              var check_event = events[i];
+              var time_difference = check_event.event.time - first_event.event.time;
+              var one_week = 3 * 24 * 3600 * 1000;
+              if (time_difference >= one_week) {
+                  count += 1;
+              }
+          }
+          return count;
+        }).filter(function(user_count) {
+          return user_count.value >= 2;
+        }).groupBy(['key.1'], mixpanel.reducer.count());
+      };
+
+      MP.api.jql(
+        jqlQuery,
+        jqlParams
+      ).done(function(results) {
+          var data = {};
+          for(var i = 0, ln = results.length; i < ln; i++) {
+            data[ results[i].key[0] ] = results[i].value;
+          }
+          
+          var mpData = MP.Data.inst({'HC': data});
+          
+          eventGraph.MPChart('setData', mpData);
+          eventTable.MPTable('setData', mpData);
+      });
     </script>
   </body>
 </html>
