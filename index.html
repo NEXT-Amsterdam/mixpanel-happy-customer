@@ -13,6 +13,7 @@
     <div id="table"></div>
     <div id="companyTable"></div>
     <script>
+      var eventName = 'Add Study Event';
       var eventGraph  = $('#graph').MPChart({chartType: 'line'});
       var eventTable  = $('#table').MPTable({
         showPercentages: true,
@@ -20,7 +21,7 @@
       });
 
           MP.api.jql(
-            "function main() { var monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']; function getMonth(tuple) { return (new Date(tuple.event.time)).toISOString().substring(0, 7); } return join( Events({ from_date: '2015-08-01', to_date: (new Date()).toISOString().substring(0, 10), event_selectors: [{event: 'Rated Profile'}] }), People() ).filter(function(tuple) { return tuple.user && tuple.event; }) .groupByUser([getMonth], function(count, events) { count = count || 0; var first_event = events[0]; for (var i = 1; i < events.length - 1; i++) { var check_event = events[i]; var time_difference = check_event.event.time - first_event.event.time; var one_week = 3*24*3600*1000; if (time_difference >= one_week) { count += 1; } } return count; }) .filter(function(user_count) { return user_count.value >= 2; }) .groupBy(['key.1'], mixpanel.reducer.count()); }"
+            "function main() { var monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']; function getMonth(tuple) { return (new Date(tuple.event.time)).toISOString().substring(0, 7); } return join( Events({ from_date: '2015-08-01', to_date: (new Date()).toISOString().substring(0, 10), event_selectors: [{event: '" + eventName + "'}] }), People() ).filter(function(tuple) { return tuple.user && tuple.event; }) .groupByUser([getMonth], function(count, events) { count = count || 0; var first_event = events[0]; for (var i = 1; i < events.length - 1; i++) { var check_event = events[i]; var time_difference = check_event.event.time - first_event.event.time; var one_week = 3*24*3600*1000; if (time_difference >= one_week) { count += 1; } } return count; }) .filter(function(user_count) { return user_count.value >= 2; }) .groupBy(['key.1'], mixpanel.reducer.count()); }"
         ).done(function(results) {
             
             var data = {};
