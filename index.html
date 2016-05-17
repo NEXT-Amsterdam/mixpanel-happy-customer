@@ -13,8 +13,12 @@
     <div id="table"></div>
     <div id="companyTable"></div>
     <script>
+      /**
+       * Change the eventName var into your key activity:
+       */
       var eventName = 'Add Study event';
       
+      // No need to edit anything past this point.
       var eventGraph  = $('#graph').MPChart({chartType: 'line'});
       var eventTable  = $('#table').MPTable({
         showPercentages: true,
